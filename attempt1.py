@@ -118,16 +118,17 @@ def most_played_by_time(lim = 10, thing = 'song', df=[], artist=None, album=None
     if isinstance(df, list):
         df = tracks_in_daterange(df=df, from_date=from_date, to_date=to_date)
     if thing == 'song':
-        df['identifier'] = df['master_metadata_track_name'] + ' - ' + df['master_metadata_album_artist_name']
+        df = df[['master_metadata_track_name', 'master_metadata_album_album_name', 'master_metadata_album_artist_name', 'ms_played']]
+        df = df.groupby(['master_metadata_track_name', 'master_metadata_album_artist_name', 'master_metadata_album_album_name']).sum(numeric_only=True)
     elif thing == 'album':
-        df['identifier'] = df['master_metadata_album_album_name'] + ' - ' + df['master_metadata_album_artist_name']
+        df = df[['master_metadata_album_album_name', 'master_metadata_album_artist_name', 'ms_played']]
+        df = df.groupby(['master_metadata_album_album_name', 'master_metadata_album_artist_name']).sum(numeric_only=True)
     elif thing == 'artist':
-        df['identifier'] = df['master_metadata_album_artist_name']
-    df = df[['identifier','ms_played']]
-    df = df.groupby('identifier').sum()
+        df = df[['master_metadata_album_artist_name', 'ms_played']]
+        df = df.groupby(['master_metadata_album_artist_name']).sum(numeric_only=True)
     df = df.sort_values('ms_played', ascending=False)
     df['ms_played'] = pd.to_timedelta(df['ms_played'], unit='ms')
-    return df.iloc[0:lim]
+    return df.iloc[0 : min(lim, len(df))]
 
 def most_played_by_count(lim = 10, thing = 'song', df=[], artist=None, album=None, from_date=None, to_date=None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1)):
     if isinstance(df, list):
@@ -135,14 +136,20 @@ def most_played_by_count(lim = 10, thing = 'song', df=[], artist=None, album=Non
     if not include_skipped:
         df = get_not_skipped(df=df, consider_complete_after=consider_complete_after)
     if thing == 'song':
-        df['identifier'] = df['master_metadata_track_name'] + ' - ' + df['master_metadata_album_artist_name']
+        df = df[['master_metadata_track_name', 'master_metadata_album_album_name', 'master_metadata_album_artist_name']]
+        df = (df.groupby(['master_metadata_track_name', 'master_metadata_album_artist_name', 'master_metadata_album_album_name']).size())
     elif thing == 'album':
-        df['identifier'] = df['master_metadata_album_album_name'] + ' - ' + df['master_metadata_album_artist_name']
+        df = df[['master_metadata_album_album_name', 'master_metadata_album_artist_name']]
+        df = df.groupby(['master_metadata_album_album_name', 'master_metadata_album_artist_name']).size()
     elif thing == 'artist':
-        df['identifier'] = df['master_metadata_album_artist_name']
-    df = df.groupby('identifier').size().to_frame('count')
-    df = df.sort_values('count', ascending=False)
-    return df.iloc[0:lim]
+        df = df[['master_metadata_album_artist_name']]
+        df = df.groupby(['master_metadata_album_artist_name']).size()
+    df = df.reset_index()
+    df = df.rename(columns = {0:'count'})
+    df = df.sort_values(by=['count'], ascending=False)
+    df = df.reset_index(drop=True)
+    return df.iloc[0 : min(lim, len(df))]
+
 
 # b=(listening_time_per())
 # c = track_count_per()
@@ -151,5 +158,13 @@ def most_played_by_count(lim = 10, thing = 'song', df=[], artist=None, album=Non
 # plt.show()
 
 
-print(most_played_by_count())
+# a=(most_played_by_count(lim=4))
+# print(a)
+# plt.bar(a['identifier'], a['count'])
+# plt.show()
 
+# print((most_played_by_count()))
+a=(most_played_by_count(lim=20))
+b=(most_played_by_time(lim=20))
+df = pd.DataFrame(a,b)
+df.to_csv('df.csv')
