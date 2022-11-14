@@ -4,7 +4,8 @@ import json
 from os.path import exists as file_exists
 import datetime as dt
 
-def read_files():
+def read_files() -> list:
+    """Reads the JSON files and returns a list of all your data"""
     file_num = 0
     complete_data = []
     while file_exists('endsong_' + str(file_num) + '.json'):
@@ -13,8 +14,8 @@ def read_files():
         file_num+=1
     return complete_data
 
-
 def files_to_dataframe(to_datetime = True, sort_by = None) -> pd.DataFrame:
+    """Uses read_files to read the JSON files and return a dataframe"""
     df = pd.json_normalize(read_files())
     if sort_by == 'ts' or to_datetime:
         df['ts'] = pd.to_datetime(df['ts'], format="%Y-%m-%dT%H:%M:%SZ")
@@ -22,7 +23,8 @@ def files_to_dataframe(to_datetime = True, sort_by = None) -> pd.DataFrame:
         df = df.sort_values(sort_by)
     return df
 
-def tracks_in_daterange(df = None, from_date=None, to_date=None):
+def tracks_in_daterange(df = None, from_date=None, to_date=None) -> pd.DataFrame:
+    """Returns a dataframe of tracks from a specified date range"""
     if type(df)==type(None):
         df = files_to_dataframe()
     if from_date==None:
@@ -32,7 +34,7 @@ def tracks_in_daterange(df = None, from_date=None, to_date=None):
     mask = (df['ts'] >= from_date) & (df['ts'] <= to_date)
     return df.loc[mask]
 
-def track_count_per(time_interval = dt.timedelta(weeks=1), from_date = None, to_date = None, df=None):
+def track_count_per(time_interval = dt.timedelta(weeks=1), from_date = None, to_date = None, df=None) -> pd.DataFrame:
     df = tracks_in_daterange(from_date=from_date, to_date=to_date, df=df)
     if from_date==None:
         from_date = df['ts'].min()
@@ -47,7 +49,7 @@ def track_count_per(time_interval = dt.timedelta(weeks=1), from_date = None, to_
         date = date + time_interval
     return pd.DataFrame({'Date' : dates, 'Tracks Count' : track_counts})
 
-def listening_time_per(df=None, time_interval = dt.timedelta(weeks=1), from_date = None, to_date = None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1)):
+def listening_time_per(df=None, time_interval = dt.timedelta(weeks=1), from_date = None, to_date = None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1)) -> pd.DataFrame:
     if include_skipped:
         df = tracks_in_daterange(from_date=from_date, to_date=to_date, df=df)
     else:
@@ -66,27 +68,25 @@ def listening_time_per(df=None, time_interval = dt.timedelta(weeks=1), from_date
         date = date + time_interval
     return pd.DataFrame({'Date': dates, 'Time Played': listing_times})
 
-
-def skipped(index, df=None, consider_complete_after = dt.timedelta(minutes=1)):
+def skipped(index, df=None, consider_complete_after = dt.timedelta(minutes=1)) -> bool:
     if type(df)==type(None):
         df = files_to_dataframe()
     skip_val = (df.loc[index]['ms_played'])/1000 < consider_complete_after.total_seconds()
     return skip_val
 
-
-def get_skipped(df = None, consider_complete_after = dt.timedelta(minutes=1)):
+def get_skipped(df = None, consider_complete_after = dt.timedelta(minutes=1)) -> pd.DataFrame:
     if type(df)==type(None):
         df = files_to_dataframe()
     mask = (df['ms_played']) / 1000 < consider_complete_after.total_seconds()
     return df.loc[mask]
 
-def get_not_skipped(df = None, consider_complete_after = dt.timedelta(minutes=1)):
+def get_not_skipped(df = None, consider_complete_after = dt.timedelta(minutes=1)) -> pd.DataFrame:
     if type(df)==type(None):
         df = files_to_dataframe()
     mask = (df['ms_played']) / 1000 >= consider_complete_after.total_seconds()
     return df.loc[mask]
 
-def get_tracks(df=None, song_title=None, artist=None, album=None, include_skipped=True, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
+def get_tracks(df=None, song_title=None, artist=None, album=None, include_skipped=True, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None) -> pd.DataFrame:
     if type(df)==type(None):
         df = tracks_in_daterange(df=df, from_date=from_date, to_date=to_date)
     if not include_skipped:
@@ -102,8 +102,7 @@ def get_tracks(df=None, song_title=None, artist=None, album=None, include_skippe
         df = df.loc[mask]
     return df
 
-
-def count_tracks(df=None, song_title=None, artist=None, album=None, include_skipped=True, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
+def count_tracks(df=None, song_title=None, artist=None, album=None, include_skipped=True, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None) -> int:
     return len(get_tracks(df=df, song_title=song_title, artist=artist, album=album, include_skipped=include_skipped, consider_complete_after=consider_complete_after))
 
 def get_listening_time(df=None, song_title=None, artist=None, album=None, include_skipped=True, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
@@ -115,7 +114,6 @@ def get_listening_time(df=None, song_title=None, artist=None, album=None, includ
                         from_date=from_date,
                         to_date=to_date)
     return pd.to_timedelta(tracks['ms_played'].sum(), unit='ms')
-
 
 def most_played_by_time(lim = 10, thing = 'song', df=None, artist=None, album=None, from_date=None, to_date=None):
     if type(df) == type(None):
@@ -130,11 +128,8 @@ def most_played_by_time(lim = 10, thing = 'song', df=None, artist=None, album=No
         df = df[['master_metadata_album_artist_name', 'ms_played']]
         df = df.groupby(['master_metadata_album_artist_name']).sum(numeric_only=True)
     df = df.reset_index()
-    # df.to_csv('cf.csv')
-    # df = df.sort_values('ms_played', ascending=False)
     df['ms_played'] = pd.to_timedelta(df['ms_played'], unit='ms')
     return df.nlargest(min(lim, len(df)), columns = ['ms_played'])
-    # return df.iloc[0 : min(lim, len(df))]
 
 def most_played_by_count(lim = 10, thing = 'song', df=None, artist=None, album=None, from_date=None, to_date=None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1)):
     if type(df) == type(None):
@@ -153,13 +148,9 @@ def most_played_by_count(lim = 10, thing = 'song', df=None, artist=None, album=N
     df = df.reset_index()
     df = df.rename(columns = {0:'count'})
     return df.nlargest(min(lim, len(df)), columns=['count'])
-    # df = df.sort_values(by=['count'], ascending=False)
-    # df = df.reset_index(drop=True)
-    # return df.iloc[0 : min(lim, len(df))]
 
-
-def most_popular_bar_chart(by = 'time', lim=10, thing = 'song', df=None, artist=None, album=None, from_date=None, to_date=None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), orientation='h'):
-    if by=='time':
+def most_popular_bar_chart(by = 't', lim=10, thing = 'song', df=None, artist=None, album=None, from_date=None, to_date=None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), orientation='h'):
+    if by=='t':
         most_popular = most_played_by_time(lim=lim,
                                            thing=thing,
                                            df=df,
@@ -168,7 +159,7 @@ def most_popular_bar_chart(by = 'time', lim=10, thing = 'song', df=None, artist=
                                            from_date=from_date,
                                            to_date=to_date)
         y = most_popular['ms_played']/pd.Timedelta(hours=1)
-    elif by=='count':
+    elif by=='c':
         most_popular = most_played_by_count(lim=lim,
                                            thing=thing,
                                            df=df,
@@ -194,15 +185,40 @@ def most_popular_bar_chart(by = 'time', lim=10, thing = 'song', df=None, artist=
         plt.barh(x, y)
     plt.show()
 
-
-
-
 def get_popularity_per(by='t', song_title=None, artist=None, album=None, df=None, time_interval = dt.timedelta(7), include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
     df = get_tracks(df=df, song_title=song_title, artist=artist, album=album, from_date=from_date, to_date=to_date, include_skipped=include_skipped, consider_complete_after=consider_complete_after)
     if by=='t':
         return listening_time_per(df=df, time_interval=time_interval, include_skipped=include_skipped, consider_complete_after=consider_complete_after, from_date=from_date, to_date=to_date)
     elif by=='c':
         return track_count_per(df=df, time_interval=time_interval, from_date=from_date, to_date=to_date)
+
+def get_devices_percentage(df = None, by='t', include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
+    df = get_tracks(df=df, include_skipped=include_skipped, consider_complete_after=consider_complete_after, from_date=from_date, to_date=to_date)
+    df['platform'] = df['platform'].str.lower()
+    smartphone_keywords = ['android', 'ios', 'iphone', 'galaxy']
+    pc_keywords = ['windows', 'linux', 'mac', 'macintosh']
+    smartphone_regex = '|'.join(smartphone_keywords)
+    pc_regex = '|'.join(pc_keywords)
+    smartphone_mask = df['platform'].str.contains(smartphone_regex)
+    pc_mask = df['platform'].str.contains(pc_regex)
+    smartphone_tracks = df.loc[smartphone_mask]
+    pc_tracks = df.loc[pc_mask]
+    if by=='c':
+        smartphone_percentage = 100*len(smartphone_tracks)/(len(smartphone_tracks)+len(pc_tracks))
+        pc_percentage = 100 * len(pc_tracks) / (len(smartphone_tracks) + len(pc_tracks))
+    if by=='t':
+        smartphone_time = smartphone_tracks['ms_played'].sum()
+        pc_time = pc_tracks['ms_played'].sum()
+        smartphone_percentage = 100*smartphone_time/(smartphone_time+pc_time)
+        pc_percentage = 100*pc_time/(pc_time+smartphone_time)
+    return {'Smartphone' : smartphone_percentage, 'PC':pc_percentage}
+
+
+    return  (df['platform'].str.contains('Android'))
+    df = df.groupby(['platform'])
+    if by=='c':
+        df = df.size()
+    return  (df.str.contains('Android'))
 
 def usage_chart(df=None, time_interval = dt.timedelta(7), by='t', include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
     if by=='t':
@@ -213,9 +229,6 @@ def usage_chart(df=None, time_interval = dt.timedelta(7), by='t', include_skippe
         plt.plot(df['Date'], df['Tracks Count'])
     plt.show()
 
-
-# most_popular_bar_chart(thing='album', by='count')
-
 def plot_popularity_per(by='t', song_title=None, artist=None, album=None, df=None, time_interval = dt.timedelta(7), include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
     df = get_popularity_per(by=by, song_title=song_title, artist=artist, album=album, df=df, time_interval = time_interval, include_skipped=include_skipped, consider_complete_after=consider_complete_after, from_date=from_date, to_date=to_date)
     if by=='t':
@@ -223,20 +236,8 @@ def plot_popularity_per(by='t', song_title=None, artist=None, album=None, df=Non
     elif by=='c':
         plt.plot(df['Date'], df['Tracks Count'])
     plt.show()
-# print(get_popularity_per(song_title='Because the Night'))
-# plot_popularity_per(song_title='There Is a Light That Never Goes Out - 2011 Remaster', by='t', time_interval=dt.timedelta(7), from_date=dt.datetime(2022,4,1))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-most_popular_bar_chart(by='time', thing='song', orientation='h', lim=15, include_skipped=False, from_date=dt.datetime(2022,1,1))
+def devices_pie_chart(df = None, by='t', include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None):
+    perc_dict = get_devices_percentage(df=df, by=by, include_skipped=include_skipped, consider_complete_after=consider_complete_after, from_date=from_date, to_date=to_date)
+    plt.pie(perc_dict.values(), labels=perc_dict.keys(), autopct='%1.0f%%')
+    plt.show()
