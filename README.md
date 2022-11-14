@@ -18,3 +18,14 @@ Output:
 
 ![Usage Chart](https://user-images.githubusercontent.com/76182061/201750242-8255c428-ffc0-4a9c-90b1-0f195437d67d.png)
 
+
+
+#### Plotting a bar chart of your favorite artists/albums/songs
+
+````
+most_popular_bar_chart(thing='album', lim=7, from_date=dt.datetime(2022,6,1))
+````
+
+Output:
+
+![MPBC](https://user-images.githubusercontent.com/76182061/201755251-783c2b36-e184-4750-b895-66bf65cd300f.png)
