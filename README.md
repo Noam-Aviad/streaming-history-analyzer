@@ -14,6 +14,8 @@ Input parameters may differ slightly between functions, but most functions accep
 
 ````time_interval```` - for functions that use a time series (e.g the ````usage_chart()```` function which id demonstrated below), this is a timedelta object that determines the time intervals.
 
+````by```` - acceptable inputs are 't' or 'c'. For functions that measure usage or listening to a specific song/album/artist, this determines whether to use listening time ('t') or the number of rows ('c').
+
 ### Examples:
 
 #### Plotting your Spotify usage history
