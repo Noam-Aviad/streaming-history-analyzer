@@ -16,6 +16,14 @@ Input parameters may differ slightly between functions, but most functions accep
 
 ````by```` - acceptable inputs are 't' or 'c'. For functions that measure usage or listening to a specific song/album/artist, this determines whether to use listening time ('t') or the number of rows ('c').
 
+````include_skipped````- Boolean, default value is False which removes tracks that were interrupted before ````consider_complete_after````
+
+````consider_complete_after```` - timedelta object to classify tracks as skipped
+
+````song_title````, ````album```` and ````artist```` - Strings to filter the data
+
+````lim```` - int, the maximal number of items on chart/return value.
+
 ### Examples:
 
 #### Plotting your Spotify usage history
