@@ -14,10 +14,10 @@ def read_files() -> list:
         file_num+=1
     return complete_data
 
-def files_to_dataframe(to_datetime = True, sort_by = None) -> pd.DataFrame:
+def files_to_dataframe(convert_to_datetime = True, sort_by = None) -> pd.DataFrame:
     """Uses read_files to read the JSON files and return a dataframe"""
     df = pd.json_normalize(read_files())
-    if sort_by == 'ts' or to_datetime:
+    if sort_by == 'ts' or convert_to_datetime:
         df['ts'] = pd.to_datetime(df['ts'], format="%Y-%m-%dT%H:%M:%SZ")
     if sort_by:
         df = df.sort_values(sort_by)
