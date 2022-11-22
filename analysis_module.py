@@ -246,7 +246,6 @@ def devices_pie_chart(df = None, by='t', include_skipped=False, consider_complet
 def get_guilty_pleasures(n=10, df = None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None, by='t', thing='song'):
     if type(df) == type(None):
         df = get_tracks(include_skipped=include_skipped, from_date=from_date, to_date=to_date, consider_complete_after=consider_complete_after)
-    print(df)
     mask = df['incognito_mode'] == True
     df = df[mask]
     if thing == 'song':
