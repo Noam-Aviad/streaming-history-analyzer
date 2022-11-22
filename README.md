@@ -22,7 +22,7 @@ Input parameters may differ slightly between functions, but most functions accep
 
 ````song_title````, ````album```` and ````artist```` - Strings to filter the data
 
-````lim```` - int, the maximal number of items on chart/return value.
+````n```` - int, the maximal number of items on chart/return value.
 
 ### Examples:
 
@@ -44,7 +44,7 @@ Output:
 #### Plotting a bar chart of your favorite artists/albums/songs
 
 ````
-most_popular_bar_chart(thing='album', lim=7, from_date=dt.datetime(2022,6,1))
+most_popular_bar_chart(thing='album', n=7, from_date=dt.datetime(2022,6,1))
 ````
 
 Output:
