@@ -256,7 +256,7 @@ def get_guilty_pleasures(n=10, df = None, include_skipped=False, consider_comple
         df = df.groupby(['master_metadata_album_artist_name'])
     if by=='t':
         df = df.sum(numeric_only=True)
-        df['ms_played'] = df['ms_played']/60000
+        df['ms_played'] = pd.to_timedelta(df['ms_played'], unit='ms')
         return df.nlargest(min(n, len(df)), columns=['ms_played'])
     elif by=='c':
         df = df.size()
