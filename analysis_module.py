@@ -257,9 +257,28 @@ def get_guilty_pleasures(n=10, df = None, include_skipped=False, consider_comple
     if by=='t':
         df = df.sum(numeric_only=True)
         df['ms_played'] = pd.to_timedelta(df['ms_played'], unit='ms')
+        df = df.reset_index()
         return df.nlargest(min(n, len(df)), columns=['ms_played'])
     elif by=='c':
         df = df.size()
         df = df.reset_index()
         df = df.rename(columns={0: 'count'})
         return df.nlargest(min(n, len(df)), columns=['count'])
+
+def plot_guilty_pleasures(n=10, df = None, include_skipped=False, consider_complete_after=dt.timedelta(minutes=1), from_date=None, to_date=None, by='t', thing='song'):
+    df = get_guilty_pleasures(n=n, df = df, include_skipped=include_skipped, consider_complete_after=consider_complete_after, from_date=from_date, to_date=to_date, by=by, thing=thing)
+    if thing=='song':
+        x = df['master_metadata_track_name']+'\n'+df['master_metadata_album_artist_name']
+    elif thing=='album':
+        x = df['master_metadata_album_album_name'] + '\n' + df['master_metadata_album_artist_name']
+    elif thing == 'artist':
+        x = df['master_metadata_album_artist_name']
+    if by == 'c':
+        y = df['count']
+    elif by == 't':
+        y = df['ms_played']/pd.Timedelta(minutes=1)
+    x = x[::-1]
+    y = y[::-1]
+    plt.subplots_adjust(left=0.2, bottom=0.1, right=0.9, top=0.9, wspace=0, hspace=0)
+    plt.barh(x,y)
+    plt.show()
