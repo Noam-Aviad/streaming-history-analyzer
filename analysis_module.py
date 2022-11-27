@@ -213,13 +213,6 @@ def get_devices_percentage(df :pd.DataFrame= None, by:str='t', include_skipped:b
         pc_percentage = 100*pc_time/(pc_time+smartphone_time)
     return {'Smartphone' : smartphone_percentage, 'PC':pc_percentage}
 
-
-    return  (df['platform'].str.contains('Android'))
-    df = df.groupby(['platform'])
-    if by=='c':
-        df = df.size()
-    return  (df.str.contains('Android'))
-
 def usage_chart(df:pd.DataFrame=None, time_interval:dt.timedelta = dt.timedelta(7), by:str='t', include_skipped:bool=False, consider_complete_after:dt.timedelta=dt.timedelta(minutes=1), from_date:dt.datetime=None, to_date:dt.datetime=None):
     if by=='t':
         df = listening_time_per(df=df, time_interval=time_interval, from_date=from_date, to_date=to_date, include_skipped=include_skipped, consider_complete_after=consider_complete_after)
